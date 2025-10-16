@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Proveedor - Ecomypes</title>
+    <link rel="stylesheet" href="dashboard_base.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* CSS General (sin cambios) */
+        .view { display: none; } .view.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .styled-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .styled-table th, .styled-table td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; }
+        .styled-table th { background-color: #f4f7f6; font-weight: 600; }
+        .styled-table tbody tr:hover { background-color: #f9f9f9; }
+        .action-buttons button { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; color: #888; }
+        .action-buttons button:hover { color: var(--color-dark-red); }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        #map { height: 500px; border-radius: 12px; margin-top: 15px; z-index: 1; }
+
+        /* ================================================= */
+        /* === ESTILOS PARA EL PANEL LATERAL DESLIZABLE === */
+        /* ================================================= */
+        .panel-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 998; opacity: 0; transition: opacity 0.4s ease-in-out; }
+        .panel-overlay.is-open { display: block; opacity: 1; }
+        .slide-panel { position: fixed; top: 0; right: -500px; width: 480px; max-width: 90%; height: 100%; background-color: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); z-index: 999; transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; }
+        .slide-panel.is-open { right: 0; }
+        .panel-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .panel-header h2 { font-size: 1.4rem; color: var(--color-dark-red); }
+        .panel-close-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #999; }
+        .panel-content { padding: 25px; flex-grow: 1; overflow-y: auto; }
+        .panel-content label { font-weight: 600; }
+        .panel-content input { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .panel-footer { padding: 20px 25px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="panel-overlay" id="panel-overlay"></div>
+    <div class="slide-panel" id="product-panel">
+        <header class="panel-header">
+            <h2 id="panel-title">Añadir Producto al Catálogo</h2>
+            <button class="panel-close-btn" id="panel-close-btn">&times;</button>
+        </header>
+        <div class="panel-content">
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div>
+                    <label for="product-name">Nombre del Producto</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div>
+                    <label for="product-price">Precio (S/)</label>
+                    <input type="number" step="0.01" id="product-price" required>
+                </div>
+            </form>
+        </div>
+        <footer class="panel-footer">
+            <button type="submit" form="product-form" class="btn btn-primary" style="width:100%;">Guardar Cambios</button>
+        </footer>
+    </div>
+
+    <div class="dashboard-grid">
+        <aside class="sidebar">
+            <div class="sidebar-header"><img src="logo.png" alt="Ecomypes Logo" class="logo"><h3>Proveedor de Bebidas</h3><p>JUAN - San Miguel</p></div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#inicio" class="nav-link active"><i class="fa-solid fa-chart-pie"></i><span>Inicio</span></a></li><li><a href="#catalogo" class="nav-link"><i class="fa-solid fa-book-open"></i><span>Mi Catálogo</span></a></li><li><a href="#pedidos" class="nav-link"><i class="fa-solid fa-inbox"></i><span>Pedidos</span></a></li><li><a href="#rutas" class="nav-link"><i class="fa-solid fa-route"></i><span>Optimizar Rutas</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer"><nav class="sidebar-nav"><ul><li><a href="#" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar Sesión</span></a></li></ul></nav></div>
+        </aside>
+
+        <main class="main-content">
+            <div id="inicio" class="view active"><header class="header"><h1>Resumen del Día, Juan ☀️</h1></header><div class="cards-grid" style="grid-template-columns: 2fr 1fr;"><div class="card"><div class="card-header"><h2>📍 Ubicaciones de Entrega para Hoy</h2></div><div id="inicio-map" style="height: 400px; border-radius: 12px;"></div></div><div class="card"><div class="card-header"><h2><i class="fa-solid fa-list-check"></i> Cola de Pedidos</h2></div><div id="inicio-order-list"></div></div></div></div>
+            <div id="catalogo" class="view"><header class="header"><h1>Mi Catálogo de Productos</h1><button class="btn btn-primary" id="add-product-btn"><i class="fa-solid fa-plus"></i> Añadir Producto</button></header><div class="card"><table class="styled-table"><thead><tr><th>Producto</th><th>Precio Unitario (S/)</th><th>Acciones</th></tr></thead><tbody id="catalog-table-body"></tbody></table></div></div>
+            <div id="pedidos" class="view"><header class="header"><h1>Gestión de Pedidos</h1></header><div class="card"><div class="card-header"><h2>Nuevos Pedidos</h2></div><table class="styled-table"><thead><tr><th>ID Pedido</th><th>MYPE Cliente</th><th>Ubicación</th><th>Acción</th></tr></thead><tbody id="new-orders-table-body"></tbody></table></div></div>
+            <div id="rutas" class="view"><header class="header"><h1>Optimizar Rutas de Entrega</h1><button class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Calcular Ruta Óptima</button></header><div class="card"><div class="card-header"><h2>Mapa de Entregas</h2></div><div id="map"></div></div></div>
+        </main>
+    </div>
+
+    <div class="chatbot-fab"><i class="fa-solid fa-comment-dots"></i></div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- NAVEGACIÓN Y LÓGICA BASE ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const views = document.querySelectorAll('.view');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    views.forEach(v => v.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetViewId = this.getAttribute('href');
+                    document.querySelector(targetViewId).classList.add('active');
+                    
+                    // Si se activa una vista con mapa, inicializar o actualizar
+                    if (targetViewId === '#inicio') { setTimeout(() => initMap('inicio-map'), 100); }
+                    if (targetViewId === '#rutas') { setTimeout(() => initMap('map'), 100); }
+                });
+            });
+
+            logoutBtn.addEventListener('click', e => { e.preventDefault(); window.location.href = 'index.html'; });
+
+            // ===============================================
+            // === LÓGICA PARA EL PANEL LATERAL DESLIZABLE ===
+            // ===============================================
+
+            const productPanel = document.getElementById('product-panel');
+            const panelOverlay = document.getElementById('panel-overlay');
+            const addProductBtn = document.getElementById('add-product-btn');
+            const closePanelBtn = document.getElementById('panel-close-btn');
+            const productForm = document.getElementById('product-form');
+            const panelTitle = document.getElementById('panel-title');
+
+            function openPanel() { panelOverlay.classList.add('is-open'); productPanel.classList.add('is-open'); }
+            function closePanel() { panelOverlay.classList.remove('is-open'); productPanel.classList.remove('is-open'); }
+            
+            addProductBtn.addEventListener('click', () => { productForm.reset(); panelTitle.textContent = "Añadir Producto al Catálogo"; document.getElementById('product-id').value = ''; openPanel(); });
+            closePanelBtn.addEventListener('click', closePanel);
+            panelOverlay.addEventListener('click', closePanel);
+
+            // --- GESTIÓN DE DATOS ---
+            let catalogData = [ { id: 1, name: "Gaseosa Kola Real 3L", price: 6.50 }, { id: 2, name: "Agua Cielo sin gas 2.5L", price: 2.80 }, { id: 3, name: "Cerveza Pilsen Callao 6-pack", price: 24.00 } ];
+            let ordersData = [];
+            const catalogTableBody = document.getElementById('catalog-table-body');
+            const newOrdersTableBody = document.getElementById('new-orders-table-body');
+
+            // --- LÓGICA CRUD PARA CATÁLOGO ---
+            function renderCatalogTable() {
+                catalogTableBody.innerHTML = '';
+                catalogData.forEach(item => {
+                    catalogTableBody.innerHTML += `<tr data-id="${item.id}"><td>${item.name}</td><td>S/ ${item.price.toFixed(2)}</td><td class="action-buttons"><button class="edit-btn" title="Editar"><i class="fas fa-edit"></i></button><button class="delete-btn" title="Eliminar"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+            }
+
+            catalogTableBody.addEventListener('click', function(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+                const id = target.closest('tr').dataset.id;
+                
+                if (target.classList.contains('edit-btn')) {
+                    const item = catalogData.find(p => p.id == id);
+                    document.getElementById('product-id').value = item.id;
+                    document.getElementById('product-name').value = item.name;
+                    document.getElementById('product-price').value = item.price;
+                    panelTitle.textContent = "Editar Producto";
+                    openPanel();
+                }
+
+                if (target.classList.contains('delete-btn')) {
+                    if (confirm('¿Seguro que quieres eliminar este producto?')) {
+                        catalogData = catalogData.filter(p => p.id != id);
+                        renderCatalogTable();
+                    }
+                }
+            });
+
+            productForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const id = document.getElementById('product-id').value;
+                const newProduct = { name: document.getElementById('product-name').value, price: parseFloat(document.getElementById('product-price').value) };
+                if (id) { const index = catalogData.findIndex(item => item.id == id); catalogData[index] = { id: parseInt(id), ...newProduct }; } else { newProduct.id = Date.now(); catalogData.push(newProduct); }
+                renderCatalogTable();
+                closePanel();
+            });
+
+            // --- LÓGICA DE PEDIDOS ---
+            const inicioOrderList = document.getElementById('inicio-order-list');
+            function checkForNewOrders() {
+                const newOrderJSON = localStorage.getItem('newOrderFromRosa');
+                if (newOrderJSON) {
+                    const newOrder = JSON.parse(newOrderJSON);
+                    if (!ordersData.find(o => o.id === newOrder.id)) {
+                        ordersData.push(newOrder);
+                        localStorage.removeItem('newOrderFromRosa');
+                        alert('🔔 ¡Has recibido un nuevo pedido de ' + newOrder.mype + '!');
+                        renderOrders();
+                        initMap('inicio-map'); // Actualiza el mapa del inicio
+                    }
+                }
+            }
+
+            function renderOrders() {
+                newOrdersTableBody.innerHTML = '';
+                inicioOrderList.innerHTML = '';
+                if(ordersData.length === 0){
+                    inicioOrderList.innerHTML = '<p>No hay pedidos nuevos por el momento.</p>';
+                    return;
+                }
+                ordersData.forEach(order => {
+                    newOrdersTableBody.innerHTML += `<tr><td>${order.id}</td><td>${order.mype}</td><td>${order.location}</td><td><button class="btn btn-primary">Confirmar</button></td></tr>`;
+                    inicioOrderList.innerHTML += `<p>• Pedido de <strong>${order.mype}</strong> (${order.location})</p>`;
+                });
+            }
+
+            // --- LÓGICA DEL MAPA INTERACTIVO ---
+            let maps = {};
+            function initMap(mapId) {
+                if (maps[mapId]) { maps[mapId].remove(); }
+                const mapContainer = document.getElementById(mapId);
+                if (!mapContainer) return;
+
+                maps[mapId] = L.map(mapId).setView([-12.06, -77.06], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(maps[mapId]);
+
+                const juanLocation = [-12.0883, -77.0754];
+                L.marker(juanLocation, { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }) }).addTo(maps[mapId]).bindPopup('<b>Mi Almacén</b>').openPopup();
+
+                let deliveryPoints = [juanLocation];
+                ordersData.forEach(order => {
+                    // Simulación de coordenadas para cada pedido
+                    const rosaLocation = [-12.0553, -77.0622];
+                    L.marker(rosaLocation).addTo(maps[mapId]).bindPopup(`<b>${order.mype}</b><br>${order.location}`);
+                    deliveryPoints.push(rosaLocation);
+                });
+                
+                if(deliveryPoints.length > 1) {
+                    maps[mapId].fitBounds(deliveryPoints, {padding: [50, 50]});
+                }
+            }
+
+            // --- INICIALIZACIÓN ---
+            renderCatalogTable();
+            checkForNewOrders();
+            renderOrders();
+            initMap('inicio-map');
+        });
+    </script>
+</body>
+</html>

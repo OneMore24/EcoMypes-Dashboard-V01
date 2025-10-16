@@ -1,0 +1,177 @@
+/* --- ESTILOS GENERALES Y FUENTE --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* --- LIENZO 3D VANTA.JS --- */
+#vanta-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* --- CONTENEDOR DE LOGIN CON EFECTO CRISTAL --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.login-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 460px; /* CAMBIO AQUÍ: Aumentamos el ancho máximo de 400px a 460px */
+    padding: 50px;      /* CAMBIO AQUÍ: Aumentamos el padding de 40px a 50px para más espacio interior */
+    background: rgba(0, 0, 0, 0.25); /* Un poco más oscuro para mejorar contraste general */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 167, 64, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    text-align: center;
+    color: white;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.logo {
+    width: 110px; /* Un poco más grande para el nuevo tamaño del contenedor */
+    margin-bottom: 15px;
+    /* CAMBIO AQUÍ: ¡La solución mágica! Añadimos un resplandor blanco al logo */
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.7));
+}
+
+.login-container h2 {
+    font-weight: 600;
+    margin-bottom: 35px; /* Más espacio */
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s;
+}
+
+.input-group input, .input-group select {
+    width: 100%;
+    padding: 14px 14px 14px 50px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-group select {
+    padding-left: 50px;
+    cursor: pointer;
+}
+.input-group select option {
+    background: #721616;
+}
+
+.floating-label label {
+    position: absolute;
+    left: 50px;
+    top: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -10px;
+    left: 10px;
+    font-size: 0.75rem;
+    background: #ce1126;
+    padding: 0 5px;
+    border-radius: 5px;
+    color: white;
+    font-weight: 600;
+}
+
+.input-group input:focus, .input-group select:focus {
+    border-color: #ffa740;
+    box-shadow: 0 0 15px rgba(255, 167, 64, 0.3);
+}
+
+.input-group input:focus ~ .input-icon,
+.input-group input:not(:placeholder-shown) ~ .input-icon {
+    color: #ffa740;
+}
+
+.login-button {
+    width: 100%;
+    padding: 15px;
+    background: #ffa740;
+    color: #721616;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px; /* Un poco de espacio extra arriba */
+}
+
+.login-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.message-container {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: left;
+    backdrop-filter: blur(5px);
+}
+
+.message-container.success {
+    background: rgba(45, 211, 111, 0.3);
+    border: 1px solid rgba(45, 211, 111, 0.5);
+    color: white;
+    display: block;
+}
+
+.message-container.error {
+    background: rgba(255, 107, 107, 0.3);
+    border: 1px solid rgba(255, 107, 107, 0.5);
+    color: white;
+    display: block;
+}
+
+.message-container ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 5px 0 0 0;
+    font-weight: 400;
+}

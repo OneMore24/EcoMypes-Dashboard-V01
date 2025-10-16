@@ -1,0 +1,184 @@
+/* --- ESTILOS BASE DEL DASHBOARD --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --color-dark-red: #721616;
+    --color-bright-red: #ce1126;
+    --color-accent-orange: #ffa740;
+    --color-background: #f4f7f6;
+    --color-text-dark: #333;
+    --color-text-light: #f0f0f0;
+    --color-card-bg: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-dark);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr; /* Barra lateral y contenido principal */
+    min-height: 100vh;
+}
+
+/* --- BARRA LATERAL (SIDEBAR) --- */
+.sidebar {
+    background: linear-gradient(180deg, #721616, #4a0e0e);
+    color: var(--color-text-light);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.sidebar-header .logo {
+    width: 80px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.sidebar-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.sidebar-header p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar-nav ul {
+    list-style: none;
+}
+
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 10px;
+    margin-bottom: 8px;
+    color: var(--color-text-light);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar-nav li a:hover, .sidebar-nav li a.active {
+    background-color: var(--color-accent-orange);
+    color: var(--color-dark-red);
+    font-weight: 600;
+}
+
+.sidebar-nav li a i {
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
+.main-content {
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* --- TARJETAS (CARDS) --- */
+.card {
+    background-color: var(--color-card-bg);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.card-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* --- BOTONES Y OTROS ELEMENTOS --- */
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--color-bright-red);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #a80f1f;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: var(--color-accent-orange);
+    color: var(--color-dark-red);
+}
+.btn-secondary:hover {
+    background-color: #e69538;
+}
+
+/* --- CHATBOT --- */
+.chatbot-fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--color-bright-red);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.chatbot-fab:hover {
+    transform: scale(1.1);
+}
+
